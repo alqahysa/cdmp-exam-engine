@@ -3,7 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CDMP Complete Exam Engine &amp; Mistakes Killer</title>
+  <title>CDMP Exam Engine - Cloud Synced</title>
+
+  <!-- Firebase Realtime Database SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyAkoO2q4lukQh5b9t20sj6wLBtORbkp404",
+    authDomain: "cdmp-quiz.firebaseapp.com",
+    databaseURL: "https://cdmp-quiz-default-rtdb.firebaseio.com",
+    projectId: "cdmp-quiz",
+    storageBucket: "cdmp-quiz.firebasestorage.app",
+    messagingSenderId: "317072676982",
+    appId: "1:317072676982:web:a1bb971a1895974c1de757"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
   <style>
     :root {
       --primary: #2563eb;
@@ -63,6 +88,52 @@
       font-size: 0.88rem;
     }
 
+    /* Cloud Sync User Bar */
+    .sync-bar {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sync-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sync-input {
+      padding: 7px 10px;
+      border: 1px solid #93c5fd;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      outline: none;
+      width: 180px;
+    }
+
+    .sync-status {
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sync-status.online {
+      color: var(--success);
+    }
+
+    .sync-status.offline {
+      color: var(--danger);
+    }
+
     /* Tab Navigation */
     .tab-nav {
       display: flex;
@@ -113,36 +184,10 @@
       border-radius: 9999px;
     }
 
-    /* Cross-Device Sync Card */
-    .sync-card {
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      border-radius: 10px;
-      padding: 12px 14px;
-      margin-bottom: 16px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .sync-info {
-      font-size: 0.82rem;
-      color: #1e40af;
-      line-height: 1.4;
-    }
-
-    .sync-btns {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    /* Layout: Sidebar + Main Workspace */
+    /* Layout */
     .app-layout {
       display: grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: 290px 1fr;
       gap: 16px;
       align-items: start;
     }
@@ -197,20 +242,11 @@
       background: #fee2e2;
       color: var(--danger);
       border-color: #fca5a5;
+      width: 100%;
     }
 
     .btn-danger-sm:hover {
       background: #fecaca;
-    }
-
-    .btn-sync-action {
-      background: #ffffff;
-      color: #1e40af;
-      border: 1px solid #93c5fd;
-    }
-
-    .btn-sync-action:hover {
-      background: #dbeafe;
     }
 
     .sidebar-menu {
@@ -287,7 +323,7 @@
       color: var(--text-muted);
     }
 
-    /* Cards & Wizard UI */
+    /* Card & Wizard UI */
     .card {
       background: var(--card-bg);
       border-radius: 12px;
@@ -538,9 +574,21 @@
 
 <div class="container">
   <header>
-    <h1>CDMP Question Bank Exam Engine</h1>
-    <p>Complete 216-question practice with persistent mobile storage and exportable backup to transfer progress across all devices[cite: 19, 20, 21].</p>
+    <h1>CDMP Complete Exam Engine</h1>
+    <p>Practice all 216 questions with automatic cloud sync across mobile, tablet, and desktop[cite: 19, 20, 21].</p>
   </header>
+
+  <!-- Live Cloud Sync Bar -->
+  <div class="sync-bar">
+    <div class="sync-bar-left">
+      <span style="font-size: 0.85rem; font-weight: 600;">👤 Sync ID:</span>
+      <input type="text" id="userSyncId" class="sync-input" placeholder="e.g. bdr_cdmp" onchange="changeSyncUser(this.value)">
+      <button type="button" class="btn-sm" style="background:#fff; border:1px solid #93c5fd;" onclick="changeSyncUser(document.getElementById('userSyncId').value)">Sync Now</button>
+    </div>
+    <div class="sync-status online" id="syncStatusIndicator">
+      <span>● Connected &amp; Auto-Saving</span>
+    </div>
+  </div>
 
   <!-- Navigation Tabs -->
   <div class="tab-nav">
@@ -550,18 +598,6 @@
     <button type="button" class="tab-btn mistakes-tab" id="tab-killer-btn" onclick="switchTab('killer')">
       🎯 Mistakes Killer <span class="tab-badge" id="killer-count-badge">0</span>
     </button>
-  </div>
-
-  <!-- Cross-Device Sync Banner -->
-  <div class="sync-card">
-    <div class="sync-info">
-      <strong>📱 Preserve progress across devices:</strong> Export your progress file to save or transfer to your phone/PC at any time.
-    </div>
-    <div class="sync-btns">
-      <button type="button" class="btn-sm btn-sync-action" onclick="exportProgress()">📥 Export Backup</button>
-      <button type="button" class="btn-sm btn-sync-action" onclick="document.getElementById('importFile').click()">📤 Import Backup</button>
-      <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importProgress(event)">
-    </div>
   </div>
 
   <!-- MAIN TAB CONTENT -->
@@ -580,7 +616,7 @@
       <main class="main-content">
         <div id="all-completed-alert" style="display: none;" class="alert-banner">
           <div>
-            <strong>🎉 All Question Bank Parts submitted!</strong> The <strong>Mistakes Killer</strong> tab is now fully unlocked.
+            <strong>🎉 All Question Bank Parts submitted!</strong> The <strong>Mistakes Killer</strong> tab is now unlocked.
           </div>
           <button type="button" class="btn-sm" style="background: var(--primary); color: #fff; border: none; width: auto;" onclick="switchTab('killer')">Open Mistakes Killer</button>
         </div>
@@ -625,7 +661,7 @@
     <div class="card">
       <h2 style="color: var(--danger); margin-bottom: 6px;">🎯 Mistakes Killer Hub</h2>
       <p style="color: var(--text-muted); font-size: 0.88rem;">
-        Re-answer your reserved mistake questions one by one. Correct answers will eliminate them from this bank!
+        Re-answer your reserved mistake questions one by one. Correct answers will eliminate them from this cloud bank!
       </p>
     </div>
 
@@ -644,7 +680,31 @@
 </div>
 
 <script>
-const STORAGE_KEY = "cdmp_quiz_full_production_v8";
+// ========================================================
+// 1. FIREBASE CONFIGURATION (Paste your project keys here)
+// ========================================================
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+let db = null;
+try {
+  if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+  }
+} catch (err) {
+  console.warn("Firebase not configured yet; defaulting to local storage", err);
+}
+
+const LOCAL_STORAGE_KEY = "cdmp_quiz_full_production_v9";
+const DEFAULT_USER_ID = "cdmp_student";
 
 const PARTS_LIST = [
   "Question Bank Part 1",
@@ -652,10 +712,10 @@ const PARTS_LIST = [
   "Question Bank Part 3"
 ];
 
-// Complete verbatim extraction of all 216 questions from Part 1, Part 2, and Part 3
+// All 216 extracted CDMP questions from PDF source materials[cite: 19, 20, 21]
 const quizData = [
   // ==========================================
-  // QUESTION BANK PART 1 (Pages 1 to 43 -> 106 Questions)
+  // QUESTION BANK PART 1 (Pages 1 to 43 -> 106 Questions)[cite: 19]
   // ==========================================
   { id: "P1_P1_Q1", part: "Question Bank Part 1", qNum: "p1-q1", question: "Data is an organizational asset. What international standard is concerned with asset management?", options: ["ISO 27001", "ISO 8000", "ISO 55000/ISO 55001", "ISO 25000", "ANSI 859"], answer: "ISO 55000 / ISO 55001" },
   { id: "P1_P1_Q2", part: "Question Bank Part 1", qNum: "p1-q2", question: "According to the DMBoK2, which items are not a consideration in a data valuation?", options: ["has the same stages as the Systems Delivery Lifecycle", "Impact to the organization if data were missing", "Benefits of higher quality data", "What the data could be sold for", "How much we can be ransomed for by a malware attack"], answer: "What the data could be sold for" },
@@ -873,7 +933,7 @@ const quizData = [
   { id: "P1_P43_Q4", part: "Question Bank Part 1", qNum: "p43-q4", question: "When defining Data Quality indicators, care must be taken to ensure they have", options: ["Measurability, Relevance, and Acceptability", "Direct link to governance strategy", "Dashboard trend items", "Core DQ dimensions", "Timeliness, validity, accuracy"], answer: "Measurability, Relevance, and Acceptability" },
 
   // ==========================================
-  // QUESTION BANK PART 2 (All 58 Questions)
+  // QUESTION BANK PART 2 (All 58 Questions)[cite: 20]
   // ==========================================
   { id: "P2_P1_Q1", part: "Question Bank Part 2", qNum: "p1-q1", question: "Which of the following is a reason why organizations do not dispose of non-value-adding information?", options: ["Data Modeling the content is difficult to reproduce", "The organization's Data Quality benchmark diminishes", "The information is never out of date", "Storage is cheap and easily expanded", "The metadata repository cannot be updated"], answer: "Storage is cheap and easily expanded" },
   { id: "P2_P1_Q2", part: "Question Bank Part 2", qNum: "p1-q2", question: "Why business relevance needs to be considered as a characteristic of Data Quality Metrics?", options: ["Unless you use business terms end-users lose interest", "Business relevance should be a DQ metric itself", "Any IT program needs business relevance", "The value of the metric is limited unless it links to business expectations and acceptability thresholds", "Expressing relevance assists metadata strategy"], answer: "The value of the metric is limited unless it links to business expectations and acceptability thresholds" },
@@ -964,7 +1024,7 @@ const quizData = [
   { id: "P2_P17_Q3", part: "Question Bank Part 2", qNum: "p17-q3", question: "Which international initiative established a Metadata Standard?", options: ["BASEL I", "BASEL II", "BASEL III", "BASEL IV", "BASEL V"], answer: "BASEL II" },
 
   // ==========================================
-  // QUESTION BANK PART 3 (All 52 Questions)
+  // QUESTION BANK PART 3 (All 52 Questions)[cite: 21]
   // ==========================================
   { id: "P3_P1_Q1", part: "Question Bank Part 3", qNum: "p1-q1", question: "Data is an organizational asset. What international standard is concerned with asset management?", options: ["ISO 55000/55001", "ISO 25000", "ISO 27001", "ISO 8000"], answer: "ISO 55000/55001" },
   { id: "P3_P1_Q2", part: "Question Bank Part 3", qNum: "p1-q2", question: "According to the DMBoK2, which items are not a consideration in a data valuation?", options: ["How much we can be ransomed for by a malware attack", "What the data could be sold for", "Benefits of higher quality data", "Impact to the organization if data were missing"], answer: "What the data could be sold for" },
@@ -1068,7 +1128,9 @@ const quizData = [
   { id: "P3_P21_Q2", part: "Question Bank Part 3", qNum: "p21-q2", question: "The process of loading raw data into a data lake where it can be useful to many processes is called", options: ["ETL", "ELT", "CDC", "OLTP", "Ingestion"], answer: "Ingestion" }
 ];
 
-// Persistent State
+// App State
+let currentUserId = localStorage.getItem("cdmp_active_sync_id") || DEFAULT_USER_ID;
+
 let appState = {
   activePart: PARTS_LIST[0],
   userAnswers: {},
@@ -1082,72 +1144,91 @@ let appState = {
   currentKillerIndex: 0
 };
 
-function loadState() {
-  const saved = localStorage.getItem(STORAGE_KEY);
+// ========================================================
+// 2. AUTO-SYNC & STORAGE MANAGEMENT
+// ========================================================
+function initSync() {
+  document.getElementById("userSyncId").value = currentUserId;
+
+  if (db) {
+    const userRef = db.ref("cdmp_quiz_users/" + sanitizeKey(currentUserId));
+    userRef.on("value", (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        appState = { ...appState, ...data };
+        renderSidebarMenu();
+        renderCurrentQuestion();
+        updateKillerTabState();
+        updateSummaryStats();
+      }
+    });
+    setSyncStatus(true, "Cloud Connected");
+  } else {
+    loadLocalState();
+    setSyncStatus(false, "Local Mode");
+  }
+}
+
+function sanitizeKey(k) {
+  return (k || "default").replace(/[.#$\[\]]/g, "_");
+}
+
+function setSyncStatus(isOnline, text) {
+  const indicator = document.getElementById("syncStatusIndicator");
+  indicator.className = `sync-status ${isOnline ? 'online' : 'offline'}`;
+  indicator.innerHTML = `<span>● ${text}</span>`;
+}
+
+function changeSyncUser(newId) {
+  if (!newId || newId.trim() === "") return;
+  currentUserId = newId.trim();
+  localStorage.setItem("cdmp_active_sync_id", currentUserId);
+
+  if (db) {
+    const userRef = db.ref("cdmp_quiz_users/" + sanitizeKey(currentUserId));
+    userRef.once("value", (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        appState = { ...appState, ...data };
+      } else {
+        // New user on cloud -> push current state
+        saveState();
+      }
+      renderSidebarMenu();
+      renderCurrentQuestion();
+      updateKillerTabState();
+      updateSummaryStats();
+    });
+  }
+}
+
+function loadLocalState() {
+  const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
   if (saved) {
     try {
       const parsed = JSON.parse(saved);
       appState = { ...appState, ...parsed };
-      if (!appState.partIndices) {
-        appState.partIndices = {
-          "Question Bank Part 1": 0,
-          "Question Bank Part 2": 0,
-          "Question Bank Part 3": 0
-        };
-      }
     } catch (e) {
-      console.error("Failed to load state", e);
+      console.error(e);
     }
   }
 }
 
 function saveState() {
+  // 1. Local backup
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-  } catch (e) {
-    console.error("Failed to save state", e);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(appState));
+  } catch (e) {}
+
+  // 2. Cloud Auto-save in real-time
+  if (db && currentUserId) {
+    const userRef = db.ref("cdmp_quiz_users/" + sanitizeKey(currentUserId));
+    userRef.set(appState).catch(err => console.error("Cloud push failed", err));
   }
 }
 
-function exportProgress() {
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState, null, 2));
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", `CDMP_Quiz_Backup_${new Date().toISOString().slice(0,10)}.json`);
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
-}
-
-function importProgress(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const parsed = JSON.parse(e.target.result);
-      if (parsed && parsed.userAnswers) {
-        appState = { ...appState, ...parsed };
-        saveState();
-        renderSidebarMenu();
-        renderCurrentQuestion();
-        updateKillerTabState();
-        updateSummaryStats();
-        alert("Progress imported successfully!");
-      } else {
-        alert("Invalid backup file format.");
-      }
-    } catch (err) {
-      alert("Error reading JSON file.");
-    }
-  };
-  reader.readAsText(file);
-}
-
 function resetAllProgress() {
-  if (confirm("Are you sure you want to reset all your progress, answers, and mistakes?")) {
-    localStorage.removeItem(STORAGE_KEY);
+  if (confirm("Reset all answered questions, scores, and mistakes history across all devices?")) {
     appState = {
       activePart: PARTS_LIST[0],
       userAnswers: {},
@@ -1160,6 +1241,7 @@ function resetAllProgress() {
       },
       currentKillerIndex: 0
     };
+    saveState();
     renderSidebarMenu();
     renderCurrentQuestion();
     updateKillerTabState();
@@ -1167,6 +1249,9 @@ function resetAllProgress() {
   }
 }
 
+// ========================================================
+// 3. TAB & QUIZ WIZARD NAVIGATION
+// ========================================================
 function switchTab(tab) {
   const mainView = document.getElementById("tab-main-view");
   const killerView = document.getElementById("tab-killer-view");
@@ -1267,7 +1352,7 @@ function renderCurrentQuestion() {
 
   btnPrev.disabled = (currentIndex === 0);
 
-  // Strictly hide Next on the final question
+  // Strictly no Next button on the final question
   if (isLastQuestion) {
     btnNext.style.display = "none";
   } else {
@@ -1447,9 +1532,9 @@ function updateKillerTabState() {
   }
 }
 
-// ==========================================
-// MISTAKES KILLER LOGIC
-// ==========================================
+// ========================================================
+// 4. MISTAKES KILLER LOGIC
+// ========================================================
 function renderCurrentKillerQuestion() {
   const container = document.getElementById("killer-question-content");
   const navControls = document.getElementById("killer-nav-controls");
@@ -1464,7 +1549,7 @@ function renderCurrentKillerQuestion() {
     container.innerHTML = `
       <div class="empty-state" style="padding: 30px;">
         <h3 style="color:var(--correct); margin-bottom:8px;">🎯 All Mistakes Eliminated!</h3>
-        <p>No remaining incorrect questions in your reserve bank.</p>
+        <p>No remaining incorrect questions in your cloud reserve bank.</p>
       </div>
     `;
     navControls.style.display = "none";
@@ -1486,7 +1571,7 @@ function renderCurrentKillerQuestion() {
 
   btnPrev.disabled = (appState.currentKillerIndex === 0);
 
-  // Hide Next button on the final mistake card
+  // Strictly no Next button on the last mistake question
   if (isKillerLastQuestion) {
     btnNext.style.display = "none";
   } else {
@@ -1565,7 +1650,7 @@ function navigateKillerQuestion(direction) {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  loadState();
+  initSync();
   renderSidebarMenu();
   renderCurrentQuestion();
   updateKillerTabState();
